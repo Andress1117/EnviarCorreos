@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enviar Correo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            width: 100%;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .message {
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Formulario de Envío de Correo</h2>
+        <form id="emailForm">
+            <div class="form-group">
+                <label for="email">Correo Electrónico Destino:</label>
+                <input type="text" id="email" name="email" placeholder="Ingrese el correo electrónico" required>
+            </div>
+            <div class="form-group">
+                <label for="reason">Motivo del Correo:</label>
+                <select id="reason" name="reason" onchange="updateEmailBody()" required>
+                    <option value="">Selecciona un motivo</option>
+                    <option value="password_reset">Restablecer Contraseña</option>
+                    <option value="verification">Verificación de Cuenta</option>
+                    <option value="notification">Notificación Importante</option>
+                    <option value="welcome">Bienvenida</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="body">Cuerpo del Mensaje:</label>
+                <textarea id="body" name="body" rows="6" placeholder="El contenido del correo se completará automáticamente..." readonly></textarea>
+            </div>
+            <button type="button" onclick="enviarCorreo()">Enviar Correo</button>
+        </form>
+
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        // Actualiza el cuerpo del correo según el motivo seleccionado
+        function updateEmailBody() {
+            var reason = document.getElementById("reason").value;
+            var bodyField = document.getElementById("body");
+            
+            // Genera el cuerpo del correo dependiendo del motivo seleccionado
+            switch(reason) {
+                case "password_reset":
+                    bodyField.value = "Hola,\n\nHemos recibido una solicitud para restablecer tu contraseña. Haz clic en el siguiente enlace para hacerlo.\n\nGracias.";
+                    break;
+                case "verification":
+                    bodyField.value = "Hola,\n\nGracias por registrarte. Para completar el registro, por favor verifica tu cuenta haciendo clic en el siguiente enlace.\n\nSaludos.";
+                    break;
+                case "notification":
+                    bodyField.value = "Hola,\n\nTe informamos que hay una actualización importante en tu cuenta. Por favor revisa los detalles en tu panel de usuario.\n\nGracias.";
+                    break;
+                case "welcome":
+                    bodyField.value = "Hola,\n\nBienvenido a nuestra plataforma. Estamos felices de tenerte con nosotros. No dudes en explorar todas las funcionalidades que tenemos para ofrecerte.\n\nSaludos.";
+                    break;
+                default:
+                    bodyField.value = "";  // Limpiar el cuerpo del mensaje si no hay opción seleccionada
+            }
+        }
+
+        // Función para enviar el correo
+        function enviarCorreo() {
+            var email = document.getElementById("email").value;
+            var body = document.getElementById("body").value;
+
+            // Codificar los parámetros correctamente
+            var url = "http://localhost:8080/api/email/send?to=" + encodeURIComponent(email) +
+                      "&subject=" + encodeURIComponent("Correo de " + document.getElementById("reason").options[document.getElementById("reason").selectedIndex].text) +
+                      "&body=" + encodeURIComponent(body);
+
+            // Mostrar el mensaje de "Enviando..."
+            document.getElementById("message").innerHTML = "Enviando el correo...";
+
+            // Hacer la solicitud a la API de Spring Boot
+            fetch(url)
+                .then(response => response.text())
+                .then(data => {
+                    // Mostrar el resultado al usuario
+                    document.getElementById("message").innerHTML = data;
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    document.getElementById("message").innerHTML = "Hubo un error al enviar el correo.";
+                });
+        }
+    </script>
+</body>
+</html>
